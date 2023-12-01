@@ -7,7 +7,7 @@ const lines = data.split(/\r?\n/);
 // Part 1
 
 // sum first digit and last digit of each calibration value
-const sum = (data) => {
+const sum = (data: string[]): number => {
     return data.reduce((acc, curr) => {
         const digits = curr.match(/[0-9]/g);
         let num = 0;
@@ -26,7 +26,7 @@ const sum = (data) => {
     }, 0);
 };
 
-let answer = sum(lines, 'one');
+let answer = sum(lines);
 console.log(`The answer to Part One is ${answer}`);
 
 // Part 2
@@ -46,7 +46,7 @@ const wvPair = {
 /**
  * Takes a line and returns a new line containing only digits
  */
-const parseLine = (line) => {
+const parseLine = (line: string): string => {
     let newLine = '';
 
     for (let i = 0; i < line.length; i++) {
@@ -68,5 +68,5 @@ const parseLine = (line) => {
 };
 
 const updatedLines = lines.map((line) => parseLine(line));
-answer = sum(updatedLines, 'two');
+answer = sum(updatedLines);
 console.log(`The answer to Part Two is ${answer}`);
