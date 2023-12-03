@@ -1,6 +1,5 @@
 {
     "name": "aoc-2023",
-    "type": "module",
     "peerDependencies": {
         "typescript": "^5.0.0"
     },

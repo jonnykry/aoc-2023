@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs';
 
-// place input in day1input.txt in root dir
-const data = readFileSync('./day1input.txt', 'utf-8');
+const data = readFileSync('./inputs/day1input.txt', 'utf-8');
 const lines = data.split(/\r?\n/);
 
 // Part 1
@@ -30,6 +29,8 @@ let answer = sum(lines);
 console.log(`The answer to Part One is ${answer}`);
 
 // Part 2
+// Note after solving:
+// This could solve using a Trie – others used [Aho-Corasick](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm).
 
 const wvPair = {
     one: '1',
