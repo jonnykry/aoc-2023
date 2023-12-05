@@ -42,10 +42,10 @@ for (let i = 1; i <= cards.length; i++) {
         card.winning.includes(c)
     ).length;
 
-    const existing = scratchcards.get(i);
+    const existing = scratchcards.get(i)!;
 
     for (let j = i + 1; j <= winning + i; j++) {
-        scratchcards.set(j, scratchcards.get(j) + existing);
+        scratchcards.set(j, scratchcards.get(j)! + existing);
     }
 }
 

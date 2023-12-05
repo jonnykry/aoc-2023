@@ -59,7 +59,7 @@ const parseLine = (line: string): string => {
             // if none is found, that's fine, we don't need it for the resulting string either way
             for (let key of Object.keys(wvPair)) {
                 if (line.substring(i, i + key.length) === key) {
-                    newLine += wvPair[key];
+                    newLine += wvPair[key as keyof typeof wvPair];
                 }
             }
         }

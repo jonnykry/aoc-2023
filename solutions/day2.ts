@@ -38,7 +38,7 @@ for (let line of lines) {
 
     // Split on ';' and for each round of the game sequence
     const splitGame = game.split('; ');
-    const colorMaximums = {
+    const colorMaximums: { [key: string]: number } = {
         blue: 0,
         red: 0,
         green: 0,
