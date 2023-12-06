@@ -28,8 +28,8 @@ class MappedRange {
     source: Range;
 
     constructor(destination: number, source: number, length: number) {
-        this.destination = new Range(destination, destination + length);
-        this.source = new Range(source, source + length);
+        this.destination = new Range(destination, destination + length - 1);
+        this.source = new Range(source, source + length - 1);
     }
 
     findDestination(value: number): number | null {
@@ -48,7 +48,7 @@ class MappedRange {
         if (!intersection) return [range];
 
         // construct new range after augmenting destination
-        let results = [intersection];
+        let results = [];
         const difference = this.destination.start - this.source.start;
         results.push(
             new Range(
@@ -93,11 +93,13 @@ const mapSeedRangesToCategory = (
     ranges: Range[]
 ): Range[] => {
     let result: Range[] = [];
+
     for (const mRange of mappedRange) {
         result = ranges.flatMap((range) => {
             return mRange.findMappedRangeIntersection(range);
         });
     }
+
     return result;
 };
 
