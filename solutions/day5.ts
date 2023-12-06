@@ -1,4 +1,4 @@
-import { parseFileLines } from './utils';
+import { parseFile } from './utils';
 
 class Range {
     start: number;
@@ -28,8 +28,8 @@ class MappedRange {
     source: Range;
 
     constructor(destination: number, source: number, length: number) {
-        this.destination = new Range(destination, destination + length - 1);
-        this.source = new Range(source, source + length - 1);
+        this.destination = new Range(destination, destination + length);
+        this.source = new Range(source, source + length);
     }
 
     findDestination(value: number): number | null {
@@ -45,9 +45,10 @@ class MappedRange {
         // and subtract difference from dest range
         const intersection = this.source.findIntersection(range);
 
+        // no intersection found, return ordinary range
         if (!intersection) return [range];
 
-        // construct new range after augmenting destination
+        // construct new range after applying destination difference
         let results = [];
         const difference = this.destination.start - this.source.start;
         results.push(
@@ -71,14 +72,14 @@ class MappedRange {
 }
 
 const mapSeedsToCategory = (
-    MappedRange: MappedRange[],
-    ranges: number[]
+    mappedRange: MappedRange[],
+    seeds: number[]
 ): number[] => {
     let result = [];
 
-    for (let seed of ranges) {
+    for (let seed of seeds) {
         result.push(
-            MappedRange.reduce((mappedSeed, range) => {
+            mappedRange.reduce((mappedSeed, range) => {
                 const newDest = range.findDestination(seed);
                 return newDest !== null ? newDest : mappedSeed;
             }, seed)
@@ -126,51 +127,54 @@ const processSeedRanges = (lines: string[]): Range[] => {
     return seedRanges;
 };
 
-export const partOne = (lines: string[]): number => {
-    let seeds = processSeeds(lines);
-    lines = lines.slice(2);
+const processMappedRangeGroupings = (lines: string[]) => {
+    let mapRangeGroups: MappedRange[][] = [];
+    mapRangeGroups.push([]);
 
-    let mRanges: MappedRange[] = [];
     for (let line of lines) {
         line = line.trim();
-
-        // beginning of new chunk
         if (line === '') {
-            seeds = mapSeedsToCategory(mRanges, seeds);
-            mRanges = [];
+            mapRangeGroups.push([]);
         } else if (!line.includes('map')) {
             let [dest, src, size] = line
                 .trim()
                 .split(' ')
                 .map((num) => parseInt(num));
 
-            mRanges.push(new MappedRange(dest, src, size));
+            mapRangeGroups[mapRangeGroups.length - 1].push(
+                new MappedRange(dest, src, size)
+            );
         }
+    }
+
+    return mapRangeGroups;
+};
+
+export const partOne = (data: string): number => {
+    let lines = data.split(/\n/);
+    let seeds: number[] = processSeeds(lines);
+    lines = lines.slice(2);
+
+    let mappedRangeGroupings: MappedRange[][] =
+        processMappedRangeGroupings(lines);
+
+    for (let groupedMapRange of mappedRangeGroupings) {
+        seeds = mapSeedsToCategory(groupedMapRange, seeds);
     }
 
     return Math.min(...seeds);
 };
 
-export const partTwo = (lines: string[]): number => {
+export const partTwo = (data: string): number => {
+    let lines = data.split(/\n/);
     let seedRanges: Range[] = processSeedRanges(lines);
     lines = lines.slice(2);
 
-    let mRanges: MappedRange[] = [];
-    for (let line of lines) {
-        line = line.trim();
+    let mappedRangeGroupings: MappedRange[][] =
+        processMappedRangeGroupings(lines);
 
-        // beginning of new chunk
-        if (line === '') {
-            seedRanges = mapSeedRangesToCategory(mRanges, seedRanges);
-            mRanges = [];
-        } else if (!line.includes('map')) {
-            let [dest, src, size] = line
-                .trim()
-                .split(' ')
-                .map((num) => parseInt(num));
-
-            mRanges.push(new MappedRange(dest, src, size));
-        }
+    for (let groupedMapRange of mappedRangeGroupings) {
+        seedRanges = mapSeedRangesToCategory(groupedMapRange, seedRanges);
     }
 
     let min = Infinity;
@@ -181,12 +185,11 @@ export const partTwo = (lines: string[]): number => {
     return min;
 };
 
-const lines = await parseFileLines('day5input.txt');
+const data = await parseFile('day5input.txt');
 
-let tempLines = [...lines];
-let solution = partOne(tempLines);
+let solution = partOne(data);
 
 console.log(`Part One solution: ${solution}`);
 
-solution = partTwo(lines);
+solution = partTwo(data);
 console.log(`Part Two solution: ${solution}`);
