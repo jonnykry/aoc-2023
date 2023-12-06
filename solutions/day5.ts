@@ -3,12 +3,10 @@ import { parseFileLines } from './utils';
 class Range {
     start: number;
     end: number;
-    length: number;
 
-    constructor(source: number, end: number) {
-        this.start = source;
+    constructor(start: number, end: number) {
+        this.start = start;
         this.end = end;
-        this.length = this.end - this.start + 1;
     }
 
     isInRange(value: number) {
@@ -23,19 +21,6 @@ class Range {
 
         return new Range(start, end);
     }
-
-    buildRangesFromIntersection(intersection: Range): Range[] {
-        const result: Range[] = [];
-
-        if (this.start < intersection.start) {
-            result.push(new Range(this.start, intersection.start));
-        }
-        if (this.end > intersection.end) {
-            result.push(new Range(intersection.end, this.end));
-        }
-
-        return result;
-    }
 }
 
 class MappedRange {
@@ -43,8 +28,8 @@ class MappedRange {
     source: Range;
 
     constructor(destination: number, source: number, length: number) {
-        this.destination = new Range(destination, destination + length - 1);
-        this.source = new Range(source, source + length - 1);
+        this.destination = new Range(destination, destination + length);
+        this.source = new Range(source, source + length);
     }
 
     findDestination(value: number): number | null {
@@ -56,19 +41,32 @@ class MappedRange {
     }
 
     findMappedRangeIntersection(range: Range): Range[] {
+        // once we have intersection, apply this intersection range
+        // and subtract difference from dest range
         const intersection = this.source.findIntersection(range);
 
         if (!intersection) return [range];
 
-        const transformed = new Range(
-            intersection.start + this.destination.start - this.source.start,
-            intersection.end + this.destination.end - this.source.end
+        // construct new range after augmenting destination
+        let results = [intersection];
+        const difference = this.destination.start - this.source.start;
+        results.push(
+            new Range(
+                intersection.start + difference,
+                intersection.end + difference
+            )
         );
 
-        return [
-            transformed,
-            ...range.buildRangesFromIntersection(intersection),
-        ];
+        // need left and right ranges outside of intersection from original range
+        if (range.start < intersection.start) {
+            results.push(new Range(range.start, intersection.start));
+        }
+
+        if (range.end > intersection.end) {
+            results.push(new Range(range.end, intersection.end));
+        }
+
+        return [...results];
     }
 }
 
@@ -96,9 +94,9 @@ const mapSeedRangesToCategory = (
 ): Range[] => {
     let result: Range[] = [];
     for (const mRange of mappedRange) {
-        result = ranges.flatMap((range) =>
-            mRange.findMappedRangeIntersection(range)
-        );
+        result = ranges.flatMap((range) => {
+            return mRange.findMappedRangeIntersection(range);
+        });
     }
     return result;
 };
@@ -136,7 +134,7 @@ export const partOne = (lines: string[]): number => {
 
         // beginning of new chunk
         if (line === '') {
-            seeds = [...mapSeedsToCategory(mRanges, seeds)];
+            seeds = mapSeedsToCategory(mRanges, seeds);
             mRanges = [];
         } else if (!line.includes('map')) {
             let [dest, src, size] = line
@@ -161,7 +159,7 @@ export const partTwo = (lines: string[]): number => {
 
         // beginning of new chunk
         if (line === '') {
-            seedRanges = [...mapSeedRangesToCategory(mRanges, seedRanges)];
+            seedRanges = mapSeedRangesToCategory(mRanges, seedRanges);
             mRanges = [];
         } else if (!line.includes('map')) {
             let [dest, src, size] = line
@@ -188,5 +186,5 @@ let solution = partOne(tempLines);
 
 console.log(`Part One solution: ${solution}`);
 
-// solution = partTwo(lines);
-// console.log(`Part Two solution: ${solution}`);
+solution = partTwo(lines);
+console.log(`Part Two solution: ${solution}`);
