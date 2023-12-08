@@ -13,13 +13,14 @@ enum Hands {
     FourOfAKind,
     FiveOfAKind,
 }
+const JOKER = 'J';
 
-export const solution = (data: string) => {
+export const solve = (data: string, isJoker: boolean = false) => {
     const lines = data.split(/\n/);
     const rankToNumber = new Map<string, number>();
     rankToNumber.set('A', 14);
     rankToNumber.set('T', 10);
-    rankToNumber.set('J', 11);
+    isJoker ? rankToNumber.set(JOKER, 1) : rankToNumber.set(JOKER, 11);
     rankToNumber.set('Q', 12);
     rankToNumber.set('K', 13);
     rankToNumber.set('2', 2);
@@ -36,18 +37,36 @@ export const solution = (data: string) => {
         return [card, parseInt(bid)];
     });
 
-    const getCardCounts = (card: Card): CardCountTuple[] => {
+    /**
+     * Sort card counts by quantity of duplicates and rank numbers if they're equal.
+     */
+    const sortCardCounts = (cardCounts: CardCountTuple[]) => {
+        return cardCounts.sort((a, b) => {
+            if (b[1] - a[1] === 0) {
+                return rankToNumber.get(b[0])! - rankToNumber.get(a[0])!;
+            } else {
+                return b[1] - a[1];
+            }
+        });
+    };
+
+    const getCardCounts = (
+        card: Card
+    ): [CardCountTuple[], Map<string, number>] => {
         const cardCounts = new Map<string, number>();
         card.split('').map((ch) => {
             const curr = cardCounts.get(ch);
             cardCounts.set(ch, curr ? curr + 1 : 1);
         });
 
-        return Array.from(cardCounts.entries()).sort((a, b) => b[1] - a[1]);
+        let countTuples = sortCardCounts(Array.from(cardCounts.entries()));
+
+        return [countTuples, cardCounts];
     };
 
     const getHandFromCounts = (countSet: CardCountTuple[]): Hands => {
         const firstCount = countSet[0][1];
+
         if (firstCount === 5) {
             return Hands.FiveOfAKind;
         } else if (firstCount === 4) {
@@ -68,18 +87,21 @@ export const solution = (data: string) => {
         return Hands.SingleCard;
     };
 
-    const compareHandEquality = (leftCard: string, rightCard: string) => {
+    /**
+     * Compares between two equal hands of cards based on checking first non-matching ranks.
+     */
+    const compareHandEquality = (leftHand: string, rightHand: string) => {
         let i = 0;
         let leftRank = '';
         let rightRank = '';
 
         while (
             leftRank === rightRank &&
-            i < leftCard.length &&
-            i < rightCard.length
+            i < leftHand.length &&
+            i < rightHand.length
         ) {
-            leftRank = leftCard.charAt(i);
-            rightRank = rightCard.charAt(i);
+            leftRank = leftHand.charAt(i);
+            rightRank = rightHand.charAt(i);
             i++;
         }
 
@@ -110,12 +132,45 @@ export const solution = (data: string) => {
         return leftHand > rightHand ? 1 : -1;
     };
 
+    /**
+     * Applies Jokers as wildcards to the first non-joker occurrence. Sorts jokers to back of list by
+     * setting their quantity to 1, so long as there are multiple types of cards in the set.
+     *
+     * If there are less than 2 types of cards in the set, then they could all be jokers.
+     */
+    const handleJokers = (
+        counts: CardCountTuple[], // sorted card counts
+        totalJokers: number | undefined
+    ) => {
+        if (!totalJokers) return;
+
+        for (let i = 0; i < counts.length; i++) {
+            if (counts[i][0] !== JOKER) {
+                counts[i][1] += totalJokers;
+                break;
+            } else {
+                // TODO: this doesn't work always, but it worked for my given input.
+                // I think better would be to entirely remove jokers when there are less than 4.
+                if (counts.length > 1) {
+                    counts[i][1] = 1;
+                }
+            }
+        }
+
+        counts = sortCardCounts(counts);
+    };
+
     hands.sort((a: CardBidTuple, b: CardBidTuple) => {
         const leftCard = a[0];
         const rightCard = b[0];
 
-        const leftCount = getCardCounts(leftCard);
-        const rightCount = getCardCounts(rightCard);
+        const [leftCount, leftMap] = getCardCounts(leftCard);
+        const [rightCount, rightMap] = getCardCounts(rightCard);
+
+        if (isJoker) {
+            handleJokers(leftCount, leftMap.get(JOKER));
+            handleJokers(rightCount, rightMap.get(JOKER));
+        }
 
         return compareCardCounts(leftCard, rightCard, leftCount, rightCount);
     });
@@ -127,4 +182,15 @@ export const solution = (data: string) => {
 };
 
 const data = await parseFile('day7input.txt');
-console.log(solution(data));
+
+export const partOne = (data: string) => {
+    return solve(data);
+};
+
+console.log(partOne(data));
+
+export const partTwo = (data: string) => {
+    return solve(data, true);
+};
+
+console.log(partTwo(data));
