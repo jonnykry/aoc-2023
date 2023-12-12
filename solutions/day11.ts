@@ -3,7 +3,7 @@ import { parseFile } from './utils';
 const GALAXY = '#';
 const EMPTY_SPACE = '.';
 
-const printMatrix = (matrix: any[][]) => {
+const printMatrix = (matrix: string[][]) => {
     for (let i = 0; i < matrix.length; i++) {
         let str = '';
         for (let j = 0; j < matrix[i].length; j++) {
@@ -17,7 +17,7 @@ const printMatrix = (matrix: any[][]) => {
 export const partOne = (data: string) => {
     const lines = data.split(/\n/);
     let matrix: string[][] = [];
-    let galaxyLocations: number[][] = [];
+    let galaxyLocations: Array<[x: number, y: number]> = [];
 
     // build matrix
     for (let i = 0; i < lines.length; i++) {
