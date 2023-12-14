@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { partOne } from './day11';
+import { solve } from './day11';
 
 describe('part 1 example', () => {
     const example = `...#......
@@ -14,7 +14,7 @@ describe('part 1 example', () => {
 #...#.....`;
 
     it('should return the correct output from the example', () => {
-        const result = partOne(example);
+        const result = solve(example);
 
         expect(result).toEqual(374);
     });

@@ -14,7 +14,7 @@ const printMatrix = (matrix: string[][]) => {
     }
 };
 
-export const partOne = (data: string) => {
+export const solve = (data: string, partOne: boolean = true) => {
     const lines = data.split(/\n/);
     let matrix: string[][] = [];
     let galaxyLocations: Array<[x: number, y: number]> = [];
@@ -30,7 +30,8 @@ export const partOne = (data: string) => {
     }
 
     let temp: string[][] = [];
-    let colsToExpand = [];
+    let emptyCols: number[] = [];
+    let emptyRows: number[] = [];
 
     // expand rows without galaxies (and collect cols to expand)
     for (let i = 0; i < matrix.length; i++) {
@@ -44,31 +45,13 @@ export const partOne = (data: string) => {
 
         temp.push(rowStr.split(''));
 
-        if (!colStr.includes(GALAXY)) {
-            colsToExpand.push(i);
+        if (!colStr.includes(GALAXY) && !emptyCols.includes(i)) {
+            emptyCols.push(i);
         }
 
-        if (!rowStr.includes(GALAXY)) {
-            temp.push(rowStr.split(''));
+        if (!rowStr.includes(GALAXY) && !emptyRows.includes(i)) {
+            emptyRows.push(i);
         }
-    }
-
-    matrix = temp;
-
-    temp = [];
-    // expand columns without galaxies
-    for (let i = 0; i < matrix.length; i++) {
-        let rowStr = '';
-
-        for (let j = 0; j < matrix[i].length; j++) {
-            rowStr += matrix[i][j];
-
-            if (colsToExpand.includes(j)) {
-                rowStr += EMPTY_SPACE;
-            }
-        }
-
-        temp.push(rowStr.split(''));
     }
 
     matrix = temp;
@@ -77,17 +60,31 @@ export const partOne = (data: string) => {
     for (let i = 0; i < matrix.length; i++) {
         for (let j = 0; j < matrix[i].length; j++) {
             if (matrix[i][j] === GALAXY) {
-                galaxyLocations.push([i, j]);
+                let newX = i;
+                let newY = j;
+
+                for (let row of emptyRows) {
+                    if (i > row) {
+                        newX += partOne ? 1 : 999999;
+                    }
+                }
+
+                for (let col of emptyCols) {
+                    if (j > col) {
+                        newY += partOne ? 1 : 999999;
+                    }
+                }
+
+                galaxyLocations.push([newX, newY]);
             }
         }
     }
 
-    // sum the manhattan distance of every galaxy in the list
     return galaxyLocations.reduce((sum, [x, y], index) => {
         for (let j = index + 1; j < galaxyLocations.length; j++) {
-            const manhattan =
-                Math.abs(x - galaxyLocations[j][0]) +
-                Math.abs(y - galaxyLocations[j][1]);
+            let newX = galaxyLocations[j][0];
+            let newY = galaxyLocations[j][1];
+            const manhattan = Math.abs(x - newX) + Math.abs(y - newY);
 
             sum += manhattan;
         }
@@ -97,5 +94,8 @@ export const partOne = (data: string) => {
 };
 
 const data = await parseFile('day11input.txt');
-const result = partOne(data);
+const result = solve(data);
+const resultTwo = solve(data, false);
+
 console.log(result);
+console.log(resultTwo);
