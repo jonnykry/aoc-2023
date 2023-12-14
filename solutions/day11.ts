@@ -3,17 +3,6 @@ import { parseFile } from './utils';
 const GALAXY = '#';
 const EMPTY_SPACE = '.';
 
-const printMatrix = (matrix: string[][]) => {
-    for (let i = 0; i < matrix.length; i++) {
-        let str = '';
-        for (let j = 0; j < matrix[i].length; j++) {
-            str += matrix[i][j];
-        }
-
-        console.log(str);
-    }
-};
-
 export const solve = (data: string, partOne: boolean = true) => {
     const lines = data.split(/\n/);
     let matrix: string[][] = [];
